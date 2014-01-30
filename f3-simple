@@ -1,0 +1,18 @@
+[masters]
+master ansible_ssh_host={{net16}}.0.2
+
+[controllers]
+cnt1 ansible_ssh_host={{net16}}.0.7
+
+[computes]
+co1 ansible_ssh_host={{net16}}.0.10
+co2 ansible_ssh_host={{net16}}.0.15
+
+[f3-simple::children]
+masters
+controllers
+computes
+
+[stack::children]
+controllers
+computes
