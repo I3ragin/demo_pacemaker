@@ -1,0 +1,23 @@
+---
+#- name: "add Mirantis internal DNS"
+#  lineinfile: dest=/etc/resolv.conf line="nameserver 172.18.16.10"
+
+- name: "Add OSCI temporary repos"
+  template: src=yumrepo.j2 dest=/etc/yum.repos.d/{{item.name}}.repo owner=bin group=wheel mode=0644
+  with_items:
+    - name: corosync
+      baseurl: "http://172.18.82.150:82/centos-fuel-4.1-stable-9912/centos/"
+    - name: pacemaker
+      baseurl: "http://172.18.82.150:82/centos-fuel-4.1-stable-9913/centos/"
+    - name: pcs
+      baseurl: "http://172.18.82.150:82/centos-fuel-4.1-stable-9915/centos/"
+
+- name: "Install corosync, pacemaker and pcs"
+  yum: >
+    name={{ item }}
+    state=latest
+    disable_gpg_check=yes
+  with_items:
+    - "corosync" #-1.4.6"
+    - "pacemaker" #-1.1.10"
+    - "pcs" #-0.9.90"

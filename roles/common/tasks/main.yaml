@@ -7,9 +7,10 @@
    - vim
    - tcpdump
    - traceroute
+#   - python-libselinux
 
-- name: Disable selinus
-  selinux: state=disabled
+#- name: Disable selinus
+#  selinux: state=disabled
 
 - name: Sync time with master-node
   command: ntpdate -u fuel
