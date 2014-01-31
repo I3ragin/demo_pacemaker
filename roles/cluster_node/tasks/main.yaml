@@ -40,3 +40,30 @@
   with_items:
     - bind_interface: "{{ ansible_eth0 }}"  # variable in quotas!!!
       xxx: yyy
+
+- name: "limits.conf"
+  copy: src=limits.conf dest=/etc/security/limits.conf owner=root group=root mode=644 backup=yes
+
+  # if $enable_secauth == 'on' {
+  #   file { '/etc/corosync/authkey':
+  #     ensure => file,
+  #     source => $authkey,
+  #     mode   => '0400',
+  #     owner  => 'root',
+  #     group  => 'root',
+  #     notify => Service['corosync'],
+  #   }
+  # }
+
+- name: "check required directories"
+  file: path={{item.name}} mode={{item.mode}} owner={{item.owner}} group={{item.group}} state=directory
+  with_items:
+    - name: /etc/corosync/service.d
+      owner: root
+      group: root
+      mode:  '0755'
+    - name: /var/lib/pacemaker/cores/root
+      owner: hacluster
+      group: haclient
+      mode:  '0750'
+
