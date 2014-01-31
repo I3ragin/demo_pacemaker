@@ -3,7 +3,7 @@
 #  lineinfile: dest=/etc/resolv.conf line="nameserver 172.18.16.10"
 
 - name: "Add OSCI temporary repos"
-  template: src=yumrepo.j2 dest=/etc/yum.repos.d/{{item.name}}.repo owner=bin group=wheel mode=0644
+  template: src=yumrepo.j2 dest=/etc/yum.repos.d/{{item.name}}.repo owner=root group=root mode=0644
   with_items:
     - name: corosync
       baseurl: "http://172.18.82.150:82/centos-fuel-4.1-stable-9912/centos/"
@@ -86,9 +86,17 @@
 
 # Setup pacemaker
 - name: "Prepare Cluster's parameters"
-  command: crm_attribute {{item.val}}
+  command: crm_attribute --type=crm_config {{item.val}}
   with_items:
-    - val: "--type=crm_config --name=no-quorum-policy --update=ignore"
-    - val: "--type=crm_config --name=stonith-enabled --update=false"
-    - val: "--type=crm_config --name=start-failure-is-fatal --update=false"
+    - val: "--name=no-quorum-policy --update=ignore"
+    - val: "--name=stonith-enabled --update=false"
+    - val: "--name=start-failure-is-fatal --update=false"
 
+#
+- name: "copy OCF scripts to remote node"
+  copy: src=ocf/{{item.name}} dest=/usr/lib/ocf/resource.d/mirantis/{{item.name}} owner=root group=root mode=0755 backup=yes
+  with_items:
+    - name: test_masterslave
+
+# start test master-slave resource
+#- name: "Test master/slave resource"

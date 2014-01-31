@@ -1,0 +1,4 @@
+[stack]
+psql1 ansible_ssh_host=10.0.0.41 ntp_server=ntp.ru
+psql2 ansible_ssh_host=10.0.0.42 ntp_server=ntp.ru
+psql3 ansible_ssh_host=10.0.0.43 ntp_server=ntp.ru

@@ -1,8 +1,7 @@
 ---
 - hosts: stack
   vars:
-    http_port: 80
-    max_clients: 200
+    net24: '10.0.0'
   roles:
    - common
    - cluster_node
