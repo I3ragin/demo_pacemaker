@@ -35,5 +35,8 @@
     - "pacemaker" #-1.1.10"
     - "pcs" #-0.9.90"
 
-# - name: "Configure Carosync"
-#   template: src=corosync1.conf.j2 dest=/etc/yum.repos.d/{{item.name}}.repo owner=bin group=wheel mode=0644
+- name: "Configure Corosync"
+  template: src=corosync1.conf.j2 dest=/etc/corosync/corosync.conf backup=yes owner=bin group=wheel mode=0644
+  with_items:
+    - bind_interface: "{{ ansible_eth0 }}"  # variable in quotas!!!
+      xxx: yyy
