@@ -85,3 +85,10 @@
   service: name=corosync state=started enabled=yes
 
 # Setup pacemaker
+- name: "Prepare Cluster's parameters"
+  command: crm_attribute {{item.val}}
+  with_items:
+    - val: "--type=crm_config --name=no-quorum-policy --update=ignore"
+    - val: "--type=crm_config --name=stonith-enabled --update=false"
+    - val: "--type=crm_config --name=start-failure-is-fatal --update=false"
+
