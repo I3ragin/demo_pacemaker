@@ -1,0 +1,4 @@
+---
+- name: Restart Corosync
+  service: name=corosync state=restarted
+

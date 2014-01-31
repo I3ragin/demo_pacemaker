@@ -36,13 +36,15 @@
     - "pcs" #-0.9.90"
 
 - name: "Configure Corosync"
-  template: src=corosync1.conf.j2 dest=/etc/corosync/corosync.conf backup=yes owner=bin group=wheel mode=0644
+  template: src=corosync1.conf.j2 dest=/etc/corosync/corosync.conf backup=yes owner=root group=root mode=0644
   with_items:
     - bind_interface: "{{ ansible_eth0 }}"  # variable in quotas!!!
       xxx: yyy
+  notify:
+    - Restart Corosync
 
 - name: "limits.conf"
-  copy: src=limits.conf dest=/etc/security/limits.conf owner=root group=root mode=644 backup=yes
+  copy: src=limits.conf dest=/etc/security/limits.conf owner=root group=root mode=0644 backup=yes
 
   # if $enable_secauth == 'on' {
   #   file { '/etc/corosync/authkey':
@@ -66,4 +68,20 @@
       owner: hacluster
       group: haclient
       mode:  '0750'
+    - name: /usr/lib/ocf/resource.d/mirantis
+      owner: root
+      group: root
+      mode:  '0755'
 
+- name: "Pacemaker as Corosync service"
+  template: src=corosync1.service.j2 dest=/etc/corosync/service.d/{{item.name}} backup=yes owner=root group=root mode=0644
+  with_items:
+    - name: pacemaker
+      version: 1.1.10
+  notify:
+    - Restart Corosync
+
+- name: "start Corosync"
+  service: name=corosync state=started enabled=yes
+
+# Setup pacemaker
