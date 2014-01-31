@@ -13,4 +13,8 @@
 #  selinux: state=disabled
 
 - name: Sync time with master-node
-  command: ntpdate -u fuel
+  command: ntpdate -u {{ntp_server}}
+  ignore_errors: True
+#- name: Sync time with ntp.ru
+#  command: ntpdate -u ntp.ru
+#  when: net16|skipped

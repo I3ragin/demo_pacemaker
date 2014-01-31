@@ -1,7 +1,7 @@
 [stack]
-co2 ansible_ssh_host={{net16}}.0.15
-co1 ansible_ssh_host={{net16}}.0.10
+co2 ansible_ssh_host={{net16}}.0.15 ntp_server=fuel
+co1 ansible_ssh_host={{net16}}.0.10 ntp_server=fuel
 
 [f3-tmp]
-co2 ansible_ssh_host={{net16}}.0.15
-co1 ansible_ssh_host={{net16}}.0.10
+co2 ansible_ssh_host={{net16}}.0.15 ntp_server=fuel
+co1 ansible_ssh_host={{net16}}.0.10 ntp_server=fuel
