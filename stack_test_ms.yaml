@@ -1,0 +1,6 @@
+---
+- hosts: "{{pcs_control_node}}"
+  vars:
+    cluster_configure: true
+  roles:
+    - cluster_node

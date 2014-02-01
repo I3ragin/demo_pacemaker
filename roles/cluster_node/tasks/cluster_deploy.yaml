@@ -2,6 +2,7 @@
 #- name: "add Mirantis internal DNS"
 #  lineinfile: dest=/etc/resolv.conf line="nameserver 172.18.16.10"
 
+# only for Centos-64-mirantis
 - name: "Add OSCI temporary repos"
   template: src=yumrepo.j2 dest=/etc/yum.repos.d/{{item.name}}.repo owner=root group=root mode=0644
   with_items:
