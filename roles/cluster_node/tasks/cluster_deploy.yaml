@@ -1,0 +1,94 @@
+---
+#- name: "add Mirantis internal DNS"
+#  lineinfile: dest=/etc/resolv.conf line="nameserver 172.18.16.10"
+
+- name: "Add OSCI temporary repos"
+  template: src=yumrepo.j2 dest=/etc/yum.repos.d/{{item.name}}.repo owner=root group=root mode=0644
+  with_items:
+    - name: corosync
+      baseurl: "http://172.18.82.150:82/centos-fuel-4.1-stable-9912/centos/"
+    - name: pacemaker
+      baseurl: "http://172.18.82.150:82/centos-fuel-4.1-stable-9913/centos/"
+    - name: pcs
+      baseurl: "http://172.18.82.150:82/centos-fuel-4.1-stable/centos/"
+    - name: yandex
+      baseurl: "http://mirror.yandex.ru/centos/6.5/os/x86_64/"
+      enabled: 0
+
+- name: "install additional requirements from external repo"
+  yum: >
+    name={{ item }}
+    state=latest
+    disable_gpg_check=yes
+    enablerepo="yandex"
+  with_items:
+    - "perl-TimeDate"
+    - "ccs"
+
+- name: "Install corosync, pacemaker and pcs"
+  yum: >
+    name={{ item }}
+    state=latest
+    disable_gpg_check=yes
+  with_items:
+    - "corosync" #-1.4.6"
+    - "pacemaker" #-1.1.10"
+    - "pcs" #-0.9.90"
+
+- name: "Configure Corosync"
+  template: src=corosync1.conf.j2 dest=/etc/corosync/corosync.conf backup=yes owner=root group=root mode=0644
+  with_items:
+    - bind_interface: "{{ ansible_eth0 }}"  # variable in quotas!!!
+      xxx: yyy
+  notify:
+    - Restart Corosync
+
+- name: "limits.conf"
+  copy: src=limits.conf dest=/etc/security/limits.conf owner=root group=root mode=0644 backup=yes
+
+  # if $enable_secauth == 'on' {
+  #   file { '/etc/corosync/authkey':
+  #     ensure => file,
+  #     source => $authkey,
+  #     mode   => '0400',
+  #     owner  => 'root',
+  #     group  => 'root',
+  #     notify => Service['corosync'],
+  #   }
+  # }
+
+- name: "check required directories"
+  file: path={{item.name}} mode={{item.mode}} owner={{item.owner}} group={{item.group}} state=directory
+  with_items:
+    - name: /etc/corosync/service.d
+      owner: root
+      group: root
+      mode:  '0755'
+    - name: /var/lib/pacemaker/cores/root
+      owner: hacluster
+      group: haclient
+      mode:  '0750'
+    - name: /usr/lib/ocf/resource.d/mirantis
+      owner: root
+      group: root
+      mode:  '0755'
+
+- name: "Pacemaker as Corosync service"
+  template: src=corosync1.service.j2 dest=/etc/corosync/service.d/{{item.name}} backup=yes owner=root group=root mode=0644
+  with_items:
+    - name: pacemaker
+      version: 0
+  notify:
+    - Restart Corosync
+
+- name: "start Corosync"
+  service: name=corosync state=started enabled=yes
+
+
+- name: "copy OCF scripts to remote node"
+  copy: src=ocf/{{item.name}} dest=/usr/lib/ocf/resource.d/mirantis/{{item.name}} owner=root group=root mode=0755 backup=yes
+  with_items:
+    - name: test_masterslave
+
+# start test master-slave resource
+#- name: "Test master/slave resource"

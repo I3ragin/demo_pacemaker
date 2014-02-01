@@ -1,0 +1,19 @@
+---
+# Setup pacemaker
+# - name: "Prepare Cluster's parameters"
+#   command: crm_attribute --type=crm_config {{item.val}}
+#   with_items:
+#     - val: "--name=no-quorum-policy --update=ignore"
+#     - val: "--name=stonith-enabled --update=false"
+#     - val: "--name=start-failure-is-fatal --update=false"
+- name: "Prepare Cluster's parameters"
+  command: pcs property set {{item.name}}={{item.value}}
+  with_items:
+    - name:  'no-quorum-policy'
+      value: 'ignore'
+    - name:  'stonith-enabled'
+      value: 'false'
+    - name:  'start-failure-is-fatal'
+      value: 'false'
+
+#
