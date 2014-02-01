@@ -203,11 +203,14 @@ agent_monitor() {
 
 
 agent_notify() {
+    env | grep notify_ | sort >> /tmp/env-`echo $d | sed s/[\ \:]//g`
+
     agent_monitor
     rc=$?
 
     d=`date '+%Y%m%d %H:%M:%S'`
-    echo "$d  [$OCF_RESKEY_CRM_notify_type $OCF_RESKEY_CRM_notify_operation]  start=$OCF_RESKEY_CRM_notify_start_uname stop=$OCF_RESKEY_CRM_notify_stop_uname curr_master=$OCF_RESKEY_CRM_notify_master_uname promote=$OCF_RESKEY_CRM_notify_promote_uname demote=$OCF_RESKEY_CRM_notify_demote_uname" >> /tmp/ms.log
+    echo "$d  [$OCF_RESKEY_CRM_meta_notify_type $OCF_RESKEY_CRM_meta_notify_operation]  start=$OCF_RESKEY_CRM_meta_notify_start_uname stop=$OCF_RESKEY_CRM_meta_notify_stop_uname curr_master=$OCF_RESKEY_CRM_meta_notify_master_uname promote=$OCF_RESKEY_CRM_meta_notify_promote_uname demote=$OCF_RESKEY_CRM_meta_notify_demote_uname" >> /tmp/ms.log
+    # OCF_RESKEY_CRM_meta_notify
 
     #return $rc
     return $OCF_SUCCESS
