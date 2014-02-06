@@ -15,5 +15,11 @@
       value: 'false'
     - name:  'start-failure-is-fatal'
       value: 'false'
+# - name: "Create test resource"
+#   template: src=corosync1.conf.j2 dest=/etc/corosync/corosync.conf backup=yes owner=root group=root mode=0644
+#   with_items:
+#     - bind_interface: "{{ ansible_eth0 }}"  # variable in quotas!!!
+#   notify:
+#     - Restart Corosync
 
 #
