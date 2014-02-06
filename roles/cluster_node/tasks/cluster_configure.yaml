@@ -15,11 +15,27 @@
       value: 'false'
     - name:  'start-failure-is-fatal'
       value: 'false'
-# - name: "Create test resource"
-#   template: src=corosync1.conf.j2 dest=/etc/corosync/corosync.conf backup=yes owner=root group=root mode=0644
-#   with_items:
-#     - bind_interface: "{{ ansible_eth0 }}"  # variable in quotas!!!
-#   notify:
-#     - Restart Corosync
-
+- name: "remove old test resource if it exists"
+  shell: "pcs resource delete {{pacemaker_test_resource}}"
+  ignore_errors: True
+- name: "Create test resource"
+  shell: "{{ item | replace('\n', '') }}"
+  with_items:
+    - >
+      pcs resource create {{pacemaker_test_resource}} ocf:mirantis:test_masterslave
+        meta master-max=1
+        meta master-node-max=1
+        meta notify=true
+        meta interleave='true'
+        meta is-managed='true'
+        meta target-role='Stopped'
+          op monitor interval='3' role='Master' timeout='10'
+          op monitor interval='30' timeout='10'
+          op start timeout='30'
+          op stop timeout='30'
+          op notify timeout='30'
+          op demote timeout='30'
+          op promote timeout='30'
+    - pcs resource master master-{{pacemaker_test_resource}} {{pacemaker_test_resource}}
+    - pcs resource enable {{pacemaker_test_resource}}
 #
