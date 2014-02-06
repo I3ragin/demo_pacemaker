@@ -26,21 +26,11 @@
 
 PATH=/sbin:/usr/sbin:/bin:/usr/bin
 
-OCF_RESKEY_binary_default="true"
-# OCF_RESKEY_config_default="/etc/neutron/neutron.conf"
-# OCF_RESKEY_agent_config_default="/etc/neutron/metadata_agent.ini"
-# OCF_RESKEY_log_file_default="/var/log/neutron/metadata-agent.log"
-# OCF_RESKEY_user_default="neutron"
-# OCF_RESKEY_pid_default="$HA_RSCTMP/$OCF_RESOURCE_INSTANCE.pid"
-# OCF_RESKEY_debug_default="false"
+OCF_RESKEY_binary_default="/bin/true"
+OCF_RESKEY_app_prefix_default="ms"
 
 : ${OCF_RESKEY_binary=${OCF_RESKEY_binary_default}}
-# : ${OCF_RESKEY_config=${OCF_RESKEY_config_default}}
-# : ${OCF_RESKEY_agent_config=${OCF_RESKEY_agent_config_default}}
-# : ${OCF_RESKEY_user=${OCF_RESKEY_user_default}}
-# : ${OCF_RESKEY_pid=${OCF_RESKEY_pid_default}}
-# : ${OCF_RESKEY_log_file=${OCF_RESKEY_log_file_default}}
-# : ${OCF_RESKEY_debug=${OCF_RESKEY_debug_default}}
+: ${OCF_RESKEY_app_prefix=${OCF_RESKEY_app_prefix_default}}
 
 #######################################################################
 
@@ -68,59 +58,25 @@ meta_data() {
 <version>1.0</version>
 
 <longdesc lang="en">
-Resource agent for the OpenStack Neutron Metadata Agent
-May manage a neutron-metadata-agent instance or a clone set that
-creates a distributed neutron-metadata-agent cluster.
+Test for MS resource agent
 </longdesc>
-<shortdesc lang="en">Manages the OpenStack OVS Service (${OCF_RESKEY_binary})</shortdesc>
+<shortdesc lang="en">Test for MS resource agent</shortdesc>
 <parameters>
 
 <parameter name="binary" unique="0" required="0">
 <longdesc lang="en">
-Location of the Neutron Metadata Agent binary
+Agent binary
 </longdesc>
-<shortdesc lang="en">Neutron Metadata Agent binary</shortdesc>
+<shortdesc lang="en">Agent binary</shortdesc>
 <content type="string" default="${OCF_RESKEY_binary_default}" />
 </parameter>
 
-<parameter name="config" unique="0" required="0">
+<parameter name="app_prefix" unique="0" required="0">
 <longdesc lang="en">
-Location of the OpenStack Neutron Service (neutron-server) configuration file
+App name prefix
 </longdesc>
-<shortdesc lang="en">OpenStack OVS Server (neutron-server) config file</shortdesc>
-<content type="string" default="${OCF_RESKEY_config_default}" />
-</parameter>
-
-<parameter name="agent_config" unique="0" required="0">
-<longdesc lang="en">
-Location of the OpenStack Neutron Metadata Agent configuration file
-</longdesc>
-<shortdesc lang="en">OpenStack Neutron Metadata Agent config file</shortdesc>
-<content type="string" default="${OCF_RESKEY_agent_config_default}" />
-</parameter>
-
-<parameter name="user" unique="0" required="0">
-<longdesc lang="en">
-User running Neutron Metadata Agent service (${OCF_RESKEY_binary})
-</longdesc>
-<shortdesc lang="en">OpenStack Neutron Metadata Agent service (${OCF_RESKEY_binary}) user</shortdesc>
-<content type="string" default="${OCF_RESKEY_user_default}" />
-</parameter>
-
-<parameter name="pid" unique="0" required="0">
-<longdesc lang="en">
-The pid file to use for this Neutron Metadata Agent service (${OCF_RESKEY_binary}) instance
-</longdesc>
-<shortdesc lang="en">OpenStack Neutron Metadata Agent service (${OCF_RESKEY_binary}) pid file</shortdesc>
-<content type="string" default="${OCF_RESKEY_pid_default}" />
-</parameter>
-
-<parameter name="log_file" unique="0" required="0">
-<longdesc lang="en">
-The log file to use for this OpenStack Metadata Service (${OCF_RESKEY_binary}) instance
-</longdesc>
-<shortdesc lang="en">OpenStack Metadata Service (${OCF_RESKEY_binary}) log file</shortdesc>
-<content type="string" default="${OCF_RESKEY_log_file_default}" />
+<shortdesc lang="en">App name prefix</shortdesc>
+<content type="string" default="${OCF_RESKEY_app_prefix_default}" />
 </parameter>
 
 <parameter name="debug" unique="0" required="0">
@@ -139,9 +95,9 @@ The debug flag for  OpenStack Metadata Service (${OCF_RESKEY_binary}) instance
 <action name="status" timeout="20" />
 <action name="monitor" depth="0" timeout="30" interval="20" />
 <action name="monitor" depth="0" timeout="30" interval="13" role="Master"/>
-<action name="promote" timeout="120" />
-<action name="demote"  timeout="120" />
-<action name="notify"   timeout="90" />
+<action name="promote" timeout="30" />
+<action name="demote"  timeout="30" />
+<action name="notify"   timeout="20" />
 <action name="validate-all" timeout="5" />
 <action name="meta-data" timeout="5" />
 </actions>
@@ -160,7 +116,7 @@ END
 
 agent_validate() {
     # d=`date '+%Y%m%d %H:%M:%S'`
-    # echo "$d  [validate]  nothing to do" >> /tmp/ms.log
+    # echo "$d  [validate]  nothing to do" >> /tmp/${OCF_RESKEY_app_prefix}.log
     return $OCF_SUCCESS
 }
 
@@ -171,12 +127,12 @@ agent_status() {
     local rc
 
     #pid=`get_worker_pid`
-    if [ -f /tmp/ms_good ] ; then
+    if [ -f /tmp/${OCF_RESKEY_app_prefix}_good ] ; then
         return $OCF_SUCCESS
     fi
 
     # d=`date '+%Y%m%d %H:%M:%S'`
-    # echo "$d  [status]  OCF_ERR_GENERIC=$OCF_ERR_GENERIC" >> /tmp/ms.log
+    # echo "$d  [status]  OCF_ERR_GENERIC=$OCF_ERR_GENERIC" >> /tmp/${OCF_RESKEY_app_prefix}.log
     return $OCF_NOT_RUNNING
 }
 
@@ -186,17 +142,17 @@ agent_monitor() {
     rc=$?
 
     d=`date '+%Y%m%d %H:%M:%S'`
-    if [ "$rc" == "$OCF_SUCCESS" -a -e /tmp/ms_master ] ; then
+    if [ "$rc" == "$OCF_SUCCESS" -a -e /tmp/${OCF_RESKEY_app_prefix}_master ] ; then
         rc=$OCF_RUNNING_MASTER
     fi
 
-    if [ ! -f /tmp/ms_score ] ; then
-        echo 0 > /tmp/ms_score
+    if [ ! -f /tmp/${OCF_RESKEY_app_prefix}_score ] ; then
+        echo 0 > /tmp/${OCF_RESKEY_app_prefix}_score
     fi
 
-    sk=`cat /tmp/ms_score`
+    sk=`cat /tmp/${OCF_RESKEY_app_prefix}_score`
     crm_master -l reboot -v $sk
-    echo "$d  [monitor]  rc=$rc  SetScore:$sk" >> /tmp/ms.log
+    echo "$d  [monitor]  rc=$rc  SetScore:$sk" >> /tmp/${OCF_RESKEY_app_prefix}.log
 
     return $rc
 }
@@ -209,7 +165,7 @@ agent_notify() {
     rc=$?
 
     d=`date '+%Y%m%d %H:%M:%S'`
-    echo "$d  [$OCF_RESKEY_CRM_meta_notify_type $OCF_RESKEY_CRM_meta_notify_operation]  start=$OCF_RESKEY_CRM_meta_notify_start_uname stop=$OCF_RESKEY_CRM_meta_notify_stop_uname curr_master=$OCF_RESKEY_CRM_meta_notify_master_uname promote=$OCF_RESKEY_CRM_meta_notify_promote_uname demote=$OCF_RESKEY_CRM_meta_notify_demote_uname" >> /tmp/ms.log
+    echo "$d  [$OCF_RESKEY_CRM_meta_notify_type $OCF_RESKEY_CRM_meta_notify_operation]  start=$OCF_RESKEY_CRM_meta_notify_start_uname stop=$OCF_RESKEY_CRM_meta_notify_stop_uname curr_master=$OCF_RESKEY_CRM_meta_notify_master_uname promote=$OCF_RESKEY_CRM_meta_notify_promote_uname demote=$OCF_RESKEY_CRM_meta_notify_demote_uname" >> /tmp/${OCF_RESKEY_app_prefix}.log
     # OCF_RESKEY_CRM_meta_notify
 
     #return $rc
@@ -228,10 +184,10 @@ agent_start() {
         #return $OCF_SUCCESS
     fi
 
-    echo > /tmp/ms_good
+    echo > /tmp/${OCF_RESKEY_app_prefix}_good
 
     d=`date '+%Y%m%d %H:%M:%S'`
-    echo "$d  [start]  rc=$rc  $alr" >> /tmp/ms.log
+    echo "$d  [start]  rc=$rc  $alr" >> /tmp/${OCF_RESKEY_app_prefix}.log
     return $OCF_SUCCESS
 }
 
@@ -248,13 +204,13 @@ agent_stop() {
         #return $OCF_SUCCESS
     fi
 
-    rm -f /tmp/ms_good
+    rm -f /tmp/${OCF_RESKEY_app_prefix}_good
 
     # remove master score
     crm_master -l reboot -D
 
     d=`date '+%Y%m%d %H:%M:%S'`
-    echo "$d  [stop]  rc=$rc  $alr" >> /tmp/ms.log
+    echo "$d  [stop]  rc=$rc  $alr" >> /tmp/${OCF_RESKEY_app_prefix}.log
     return $OCF_SUCCESS
 }
 
@@ -276,7 +232,7 @@ agent_promote() {
         "$OCF_RUNNING_MASTER")
             # Already a master. Unexpected, but not a problem.
             ocf_log info "Resource is already running as Master"
-            echo "$d  [promote]  rc=$rc  Already_master" >> /tmp/ms.log
+            echo "$d  [promote]  rc=$rc  Already_master" >> /tmp/${OCF_RESKEY_app_prefix}.log
             return $OCF_SUCCESS
             ;;
         "$OCF_NOT_RUNNING")
@@ -292,9 +248,9 @@ agent_promote() {
     esac
 
     # transform slave agent to master
-    echo > /tmp/ms_master
+    echo > /tmp/${OCF_RESKEY_app_prefix}_master
 
-    echo "$d  [promote]  rc=$rc" >> /tmp/ms.log
+    echo "$d  [promote]  rc=$rc" >> /tmp/${OCF_RESKEY_app_prefix}.log
     return $OCF_SUCCESS
 }
 
@@ -315,7 +271,7 @@ agent_demote() {
         "$OCF_SUCCESS")
             # Alread running as slave. Nothing to do.
             ocf_log debug "Resource is currently running as Slave"
-            echo "$d  [demote]  rc=$rc  Already_slave" >> /tmp/ms.log
+            echo "$d  [demote]  rc=$rc  Already_slave" >> /tmp/${OCF_RESKEY_app_prefix}.log
             return $OCF_SUCCESS
             ;;
         "$OCF_NOT_RUNNING")
@@ -323,7 +279,7 @@ agent_demote() {
             # in this state is unexpected. Exit with an error
             # and let the cluster manager recover.
             ocf_log err "Resource is currently not running"
-            echo "$d  [demote]  rc=$rc  Resource_not_running  Emergency_exit" >> /tmp/ms.log
+            echo "$d  [demote]  rc=$rc  Resource_not_running  Emergency_exit" >> /tmp/${OCF_RESKEY_app_prefix}.log
             exit $OCF_ERR_GENERIC
             ;;
         *)
@@ -334,9 +290,9 @@ agent_demote() {
     esac
 
     # transform slave agent to master
-    rm -f /tmp/ms_master
+    rm -f /tmp/${OCF_RESKEY_app_prefix}_master
 
-    echo "$d  [demote]  rc=$rc" >> /tmp/ms.log
+    echo "$d  [demote]  rc=$rc" >> /tmp/${OCF_RESKEY_app_prefix}.log
     return $OCF_SUCCESS
 }
 #######################################################################
