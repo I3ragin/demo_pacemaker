@@ -6,21 +6,21 @@
 - name: "Add OSCI temporary repos"
   template: src=yumrepo.j2 dest=/etc/yum.repos.d/{{item.name}}.repo owner=root group=root mode=0644
   with_items:
-    - name: corosync_pacemaker_pcs
-      baseurl: "http://172.18.82.150:82/centos-fuel-4.1-stable/centos/"
+    - name: fuel_41_mirror
+      baseurl: "http://ss0078.svwh.net/fwm/4.1/centos/os/x86_64/"
     - name: yandex
       baseurl: "http://mirror.yandex.ru/centos/6.5/os/x86_64/"
       enabled: 0
 
-- name: "install additional requirements from external repo"
-  yum: >
-    name={{ item }}
-    state=latest
-    disable_gpg_check=yes
-    enablerepo="yandex"
-  with_items:
-    - "perl-TimeDate"
-    - "ccs"
+# - name: "install additional requirements from external repo"
+#   yum: >
+#     name={{ item }}
+#     state=latest
+#     disable_gpg_check=yes
+#     enablerepo="yandex"
+#   with_items:
+#     - "perl-TimeDate"
+#     - "ccs"
 
 - name: "Install corosync, pacemaker and pcs"
   yum: >
@@ -30,7 +30,7 @@
   with_items:
     - "corosync-1.4.6"
     - "pacemaker-1.1.10"
-    - "pcs" #-0.9.90"
+    - "pcs-0.9.103"
 
 - name: "Configure Corosync"
   template: src=corosync1.conf.j2 dest=/etc/corosync/corosync.conf backup=yes owner=root group=root mode=0644
@@ -80,11 +80,8 @@
 - name: "start Corosync"
   service: name=corosync state=started enabled=yes
 
-
 - name: "copy OCF scripts to remote node"
   copy: src=ocf/{{item.name}} dest=/usr/lib/ocf/resource.d/mirantis/{{item.name}} owner=root group=root mode=0755 backup=yes
   with_items:
     - name: test_masterslave
-
-# start test master-slave resource
-#- name: "Test master/slave resource"
+#
