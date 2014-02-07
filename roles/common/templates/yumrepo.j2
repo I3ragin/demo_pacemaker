@@ -1,9 +1,5 @@
 [{{item.name}}]
 name={{item.name}}
-{% if item.mirrorlist is defined %}
-mirrorlist={{item.mirrorlist}}
-{% else %}
 baseurl={{item.baseurl}}
-{% endif %}
 gpgcheck=0
 enabled={{item.enabled|default('1')}}

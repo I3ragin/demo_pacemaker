@@ -2,3 +2,24 @@
 ansible_ssh_user: root
 #ansible_ssh_pass: r00tme
 pacemaker_test_resource: test_ms
+
+extra_repos:
+  - name: fuel_41_mirror
+    baseurl: http://ss0078.svwh.net/fwm/4.1/centos/os/x86_64/
+    enabled: 1
+  - name: yandex
+    baseurl: http://mirror.yandex.ru/centos/6.5/os/x86_64/
+    enabled: 0
+  - name: epel
+    mirrorlist: https://mirrors.fedoraproject.org/metalink?repo=epel-6&arch=$basearch
+    enabled: 0
+
+net_interfaces:
+  external: eth0
+  management: eth1
+  cluster: eth2
+
+domain: local
+
+cluster_netmask: 255.255.255.0
+centos_network: true

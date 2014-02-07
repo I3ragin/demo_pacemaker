@@ -1,4 +1,9 @@
 ---
-- name: Restart Corosync
+- name: "Restart corosync-daemon"
   service: name=corosync state=restarted
-
+- name: "Stop pacemaker-daemon"
+  service: name=pacemaker state=stopped
+- name: "Start pacemaker-daemon"
+  service: name=pacemaker state=started
+- name: "Restart avahi-daemon"
+  service: name=avahi-daemon state=restarted

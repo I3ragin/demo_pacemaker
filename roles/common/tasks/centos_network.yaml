@@ -1,0 +1,32 @@
+---
+- name: "Setup hostname"
+  hostname: name={{inventory_hostname_short}}.{{domain}}
+- name: "sysconfig/network"
+  lineinfile: >
+    dest=/etc/sysconfig/network
+    regexp={{item.key}}
+    line={{item.val}}
+    state=present create=yes backup=yes
+  with_items:
+    - key: "^HOSTNAME="
+      val: "HOSTNAME={{inventory_hostname_short}}.{{domain}}"
+    - key: "^NETWORKING="
+      val: "NETWORKING=yes"
+- name: create ifcfg
+  template: >
+    src=centos-ifcfg.j2
+    dest=/etc/sysconfig/network-scripts/ifcfg-{{item.iface}}
+    backup=yes owner=root group=root mode=0644
+  with_items:
+    - iface:  "{{net_interfaces.cluster}}"
+      ipaddr: "{{cluster_ipaddr}}"
+  register: need_up_n_down_interfaces
+- name: "Up-n-Down network interfaces if need"
+  shell: "ifdown {{item.item.iface}}  ;  sleep 3  ;  ifup {{item.item.iface}}  "
+  with_items: need_up_n_down_interfaces.results
+  when: need_up_n_down_interfaces.changed == true
+# - name: create resolv.conf
+#   template: >
+#     src=resolv.conf.j2
+#     dest=/etc/resolv.conf
+#     backup=yes owner=root group=root mode=0644

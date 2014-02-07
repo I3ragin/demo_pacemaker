@@ -3,14 +3,9 @@
 #  lineinfile: dest=/etc/resolv.conf line="nameserver 172.18.16.10"
 
 # only for Centos-64-mirantis
-- name: "Add OSCI temporary repos"
+- name: "Add extra repos"
   template: src=yumrepo.j2 dest=/etc/yum.repos.d/{{item.name}}.repo owner=root group=root mode=0644
-  with_items:
-    - name: fuel_41_mirror
-      baseurl: "http://ss0078.svwh.net/fwm/4.1/centos/os/x86_64/"
-    - name: yandex
-      baseurl: "http://mirror.yandex.ru/centos/6.5/os/x86_64/"
-      enabled: 0
+  with_items: extra_repos
 
 # - name: "install additional requirements from external repo"
 #   yum: >
@@ -31,27 +26,47 @@
     - "corosync-1.4.6"
     - "pacemaker-1.1.10"
     - "pcs-0.9.103"
+    - "avahi-tools"
+    - "oddjob"
+- yum: name=nss-mdns state=installed enablerepo=epel disable_gpg_check=yes
+- service: name=messagebus state=started enabled=yes
+
+- name: "Configure avahi/mdns"
+  template: >
+    src=avahi-daemon.conf.j2
+    dest=/etc/avahi/avahi-daemon.conf
+    backup=yes owner=root group=root mode=0644
+  with_items:
+    - bind_interface: "{{net_interfaces.cluster}}"
+      domain_name: "{{domain}}"
+  notify:
+    - "Restart avahi-daemon"
+- name: "Configure mdns resolving"
+  lineinfile: >
+    dest=/etc/nsswitch.conf
+    regexp=^hosts:
+    line="hosts: files mdns4_minimal [NOTFOUND=return]  dns mdns4"
+    state=present create=yes backup=yes
+- name: "Configure mdns resolving"
+  template: dest=/etc/mdns.allow src=mdns.allow.j2 backup=yes owner=root group=root mode=0644
+- service: name=avahi-daemon state=started enabled=yes
+
+
+# - debug: >
+#      msg="{{"+"ansible_{{net_interfaces.cluster}}"+"}}"
 
 - name: "Configure Corosync"
   template: src=corosync1.conf.j2 dest=/etc/corosync/corosync.conf backup=yes owner=root group=root mode=0644
   with_items:
-    - bind_interface: "{{ ansible_eth0 }}"  # variable in quotas!!!
+    - bind_address: "{{cluster_ipaddr}}"
   notify:
-    - Restart Corosync
+    - Stop pacemaker-daemon
+    - Restart corosync-daemon
+    - Start pacemaker-daemon
 
 - name: "limits.conf"
   copy: src=limits.conf dest=/etc/security/limits.conf owner=root group=root mode=0644 backup=yes
-
-  # if $enable_secauth == 'on' {
-  #   file { '/etc/corosync/authkey':
-  #     ensure => file,
-  #     source => $authkey,
-  #     mode   => '0400',
-  #     owner  => 'root',
-  #     group  => 'root',
-  #     notify => Service['corosync'],
-  #   }
-  # }
+- service: name=iptables state=stopped enabled=no
 
 - name: "check required directories"
   file: path={{item.name}} mode={{item.mode}} owner={{item.owner}} group={{item.group}} state=directory
@@ -73,14 +88,15 @@
   template: src=corosync1.service.j2 dest=/etc/corosync/service.d/{{item.name}} backup=yes owner=root group=root mode=0644
   with_items:
     - name: pacemaker
-      version: 0
+      version: 1
   notify:
-    - Restart Corosync
+    - Stop pacemaker-daemon
+    - Restart corosync-daemon
+    - Start pacemaker-daemon
+- service: name=corosync enabled=yes
+- service: name=pacemaker enabled=yes
 
-- name: "start Corosync"
-  service: name=corosync state=started enabled=yes
-
-- name: "copy OCF scripts to remote node"
+- name: "Install OCF scripts"
   copy: src=ocf/{{item.name}} dest=/usr/lib/ocf/resource.d/mirantis/{{item.name}} owner=root group=root mode=0755 backup=yes
   with_items:
     - name: test_masterslave

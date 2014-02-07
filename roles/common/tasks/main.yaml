@@ -1,20 +1,19 @@
 ---
 - name: Install required packages
-  yum: name={{ item }} state=installed
+  yum: name={{item}} state=installed
   with_items:
    - ntpdate
    - ntp
    - vim
    - tcpdump
    - traceroute
-#   - python-libselinux
+   - libselinux-python
 
-#- name: Disable selinus
-#  selinux: state=disabled
+- name: Disable selinus
+  selinux: state=disabled
 
 - name: Sync time with master-node
   command: ntpdate -u {{ntp_server}}
   ignore_errors: True
-#- name: Sync time with ntp.ru
-#  command: ntpdate -u ntp.ru
-#  when: net16|skipped
+- include: centos_network.yaml
+  when: centos_network is defined and centos_network

@@ -12,7 +12,7 @@ totem {
   threads:                             {{item.threads|default('0')}}
   interface {
     ringnumber:   0
-    bindnetaddr:  {{item.bind_interface.ipv4.address}}
+    bindnetaddr:  {{item.bind_address}}
     mcastaddr:    {{item.multicast_address|default('239.1.1.2')}}
     mcastport:    {{item.port|default('5405')}}
   }
