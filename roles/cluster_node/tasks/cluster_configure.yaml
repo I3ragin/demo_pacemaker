@@ -32,6 +32,7 @@
     - >
       pcs resource master master-{{pacemaker_test_resource}} {{pacemaker_test_resource}}
         notify=true
+        ordered=true
         master-max=1
         master-node-max=1
     - pcs resource enable {{pacemaker_test_resource}}
