@@ -23,19 +23,16 @@
   with_items:
     - >
       pcs resource create {{pacemaker_test_resource}} ocf:mirantis:test_masterslave
-        meta master-max=1
-        meta master-node-max=1
-        meta notify=true
-        meta interleave='true'
-        meta is-managed='true'
         meta target-role='Stopped'
           op monitor interval='3' role='Master' timeout='10'
-          op monitor interval='30' timeout='10'
-          op start timeout='30'
-          op stop timeout='30'
+          op monitor interval='20' timeout='10'
           op notify timeout='30'
           op demote timeout='30'
           op promote timeout='30'
-    - pcs resource master master-{{pacemaker_test_resource}} {{pacemaker_test_resource}}
+    - >
+      pcs resource master master-{{pacemaker_test_resource}} {{pacemaker_test_resource}}
+        notify=true
+        master-max=1
+        master-node-max=1
     - pcs resource enable {{pacemaker_test_resource}}
 #
