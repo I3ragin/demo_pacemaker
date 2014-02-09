@@ -1,22 +1,29 @@
 ---
+- name: "Add extra repos"
+  template: src=yumrepo.j2 dest=/etc/yum.repos.d/{{item.name}}.repo owner=root group=root mode=0644
+  with_items: extra_repos
+
 - name: Install required packages
   yum: name={{item}} state=installed
   with_items:
    - ntpdate
    - ntp
    - vim
+   - man
    - tcpdump
    - traceroute
    - libselinux-python
 
-- name: Disable selinus
-  selinux: state=disabled
+- selinux: state=disabled
 
-- name: Sync time with master-node
-  command: ntpdate -u {{ntp_server}}
+- command: ntpdate -u {{ntp_server}}
   ignore_errors: True
-
 - service: name=ntpd  state=started  enabled=yes
+
+- name: Install required packages from epel
+  yum: name={{item}} state=installed enablerepo=epel disable_gpg_check=yes
+  with_items:
+   - bash-completion
 
 - include: centos_network.yaml
   when: centos_network is defined and centos_network

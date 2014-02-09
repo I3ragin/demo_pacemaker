@@ -9,25 +9,27 @@ totem {
   clear_node_high_bit:                 yes
   rrp_mode:                            none
   secauth:                             {{item.secauth|default('off')}}
-  threads:                             {{item.threads|default('0')}}
   interface {
     ringnumber:   0
     bindnetaddr:  {{item.bind_address}}
+    {% if item.broadcast|default(False) and item.broadcast|upper in ['ON','TRUE','YES']%}
+    broadcast:    yes
+    {% else %}
     mcastaddr:    {{item.multicast_address|default('239.1.1.2')}}
+    {% endif %}
     mcastport:    {{item.port|default('5405')}}
+    ttl:          {{item.ttl|default('3')}}
   }
 }
 
 logging {
+  debug:           {{item.debug|default('off')}}
   fileline:        off
   to_stderr:       {{item.log_to_stderr|default('no')}}
   to_syslog:       {{item.log_to_syslog|default('no')}}
   to_logfile:      {{item.log_to_file|default('yes')}}
   logfile:         /var/log/corosync.log
   syslog_facility: daemon
-# We don't really want corosync debugs, it is TOO verbose
-#  debug:           <%= scope.lookupvar('debug') ? 'on' : 'off' %>
-  debug:           {{item.debug|default('off')}}
   timestamp:       on
   logger_subsys {
     subsys: AMF

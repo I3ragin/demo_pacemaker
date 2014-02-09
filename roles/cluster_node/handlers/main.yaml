@@ -1,9 +1,11 @@
 ---
-- name: "Restart corosync-daemon"
-  service: name=corosync state=restarted
-- name: "Stop pacemaker-daemon"
-  service: name=pacemaker state=stopped
-- name: "Start pacemaker-daemon"
-  service: name=pacemaker state=started
 - name: "Restart avahi-daemon"
   service: name=avahi-daemon state=restarted
+# Order of this 3 handlers very important !!!
+- name: "Stop pacemaker-daemon"
+  service: name=pacemaker state=stopped
+- name: "Restart corosync-daemon"
+  service: name=corosync state=restarted
+- name: "Start pacemaker-daemon"
+  service: name=pacemaker state=started
+#

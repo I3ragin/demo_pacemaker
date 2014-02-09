@@ -1,25 +1,7 @@
 ---
-#- name: "add Mirantis internal DNS"
-#  lineinfile: dest=/etc/resolv.conf line="nameserver 172.18.16.10"
-
-# only for Centos-64-mirantis
-- name: "Add extra repos"
-  template: src=yumrepo.j2 dest=/etc/yum.repos.d/{{item.name}}.repo owner=root group=root mode=0644
-  with_items: extra_repos
-
-# - name: "install additional requirements from external repo"
-#   yum: >
-#     name={{ item }}
-#     state=latest
-#     disable_gpg_check=yes
-#     enablerepo="yandex"
-#   with_items:
-#     - "perl-TimeDate"
-#     - "ccs"
-
-- name: "Install corosync, pacemaker and pcs"
+- name: "Install corosync, pacemaker, pcs, avahi"
   yum: >
-    name={{ item }}
+    name={{item}}
     state=latest
     disable_gpg_check=yes
   with_items:
@@ -47,27 +29,21 @@
     regexp=^hosts:
     line="hosts: files mdns4_minimal [NOTFOUND=return]  dns mdns4"
     state=present create=yes backup=yes
-- name: "Configure mdns resolving"
-  template: dest=/etc/mdns.allow src=mdns.allow.j2 backup=yes owner=root group=root mode=0644
+- template: dest=/etc/mdns.allow src=mdns.allow.j2 backup=yes owner=root group=root mode=0644
 - service: name=avahi-daemon state=started enabled=yes
 
-
-# - debug: >
-#      msg="{{"+"ansible_{{net_interfaces.cluster}}"+"}}"
+- copy: src=limits.conf dest=/etc/security/limits.conf owner=root group=root mode=0644 backup=yes
+- service: name=iptables state=stopped enabled=no
 
 - name: "Configure Corosync"
   template: src=corosync1.conf.j2 dest=/etc/corosync/corosync.conf backup=yes owner=root group=root mode=0644
   with_items:
     - bind_address: "{{cluster_ipaddr}}"
+      broadcast: "{{cluster_broadcast}}"
   notify:
     - Stop pacemaker-daemon
     - Restart corosync-daemon
     - Start pacemaker-daemon
-
-- name: "limits.conf"
-  copy: src=limits.conf dest=/etc/security/limits.conf owner=root group=root mode=0644 backup=yes
-- service: name=iptables state=stopped enabled=no
-
 - name: "check required directories"
   file: path={{item.name}} mode={{item.mode}} owner={{item.owner}} group={{item.group}} state=directory
   with_items:
@@ -89,12 +65,8 @@
   with_items:
     - name: pacemaker
       version: 1
-  notify:
-    - Stop pacemaker-daemon
-    - Restart corosync-daemon
-    - Start pacemaker-daemon
-- service: name=corosync enabled=yes
-- service: name=pacemaker enabled=yes
+- service: name=corosync enabled=yes state=started
+- service: name=pacemaker enabled=yes state=started
 
 - name: "Install OCF scripts"
   copy: src=ocf/{{item.name}} dest=/usr/lib/ocf/resource.d/mirantis/{{item.name}} owner=root group=root mode=0755 backup=yes

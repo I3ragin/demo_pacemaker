@@ -23,4 +23,6 @@ domain: local
 ntp_server: ntp.ru
 
 cluster_netmask: 255.255.255.0
+cluster_broadcast: false
+
 centos_network: true

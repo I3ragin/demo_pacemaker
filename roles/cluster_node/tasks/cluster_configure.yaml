@@ -36,4 +36,13 @@
         master-max=1
         master-node-max=1
     - pcs resource enable {{pacemaker_test_resource}}
+- name: "Reserve ntpd"
+  shell: "{{ item | replace('\n', '') }}"
+  with_items:
+    - >
+      pcs resource create ntpd lsb:ntpd
+        meta target-role='Stopped'
+          op monitor interval='20' timeout='10'
+    - pcs resource clone c-ntpd ntpd
+    - pcs resource enable ntpd
 #
