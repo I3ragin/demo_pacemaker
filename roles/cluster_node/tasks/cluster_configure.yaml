@@ -30,12 +30,16 @@
           op demote timeout='30'
           op promote timeout='30'
     - >
-      pcs resource master master-{{pacemaker_test_resource}} {{pacemaker_test_resource}}
+      pcs resource master {{pacemaker_test_resource}}
         notify=true
         ordered=true
         master-max=1
         master-node-max=1
     - pcs resource enable {{pacemaker_test_resource}}
+
+- name: "remove old ntpd resource if it exists"
+  shell: "pcs resource delete ntpd"
+  ignore_errors: True
 - name: "Reserve ntpd"
   shell: "{{ item | replace('\n', '') }}"
   with_items:
@@ -43,6 +47,6 @@
       pcs resource create ntpd lsb:ntpd
         meta target-role='Stopped'
           op monitor interval='20' timeout='10'
-    - pcs resource clone c-ntpd ntpd
+    - pcs resource clone ntpd
     - pcs resource enable ntpd
 #
