@@ -10,6 +10,7 @@
     - "pcs-0.9.103"
     - "avahi-tools"
     - "oddjob"
+    - "nginx"
 - yum: name=nss-mdns state=installed enablerepo=epel disable_gpg_check=yes
 - service: name=messagebus state=started enabled=yes
 
